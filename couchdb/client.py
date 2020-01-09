@@ -527,11 +527,22 @@ class Database(object):
         else:
             func = self.resource.post_json
         _, _, data = func(body=doc, **options)
-        id, rev = data['id'], data.get('rev')
-        doc['_id'] = id
-        if rev is not None: # Not present for batch='ok'
+        _id, rev = data['id'], data.get('rev')
+        doc['_id'] = _id
+        if rev is not None:  # Not present for batch='ok'
             doc['_rev'] = rev
-        return id, rev
+        return _id, rev
+
+    def bulk_save(self, docs: list, **options):
+        for doc in docs:
+            if '_id' in doc:
+                pass
+
+        self.resource.post_json(
+            path='_bulk_docs',
+            body={'docs': docs},
+            **options
+        )
 
     def cleanup(self):
         """Clean up old design document indexes.

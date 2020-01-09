@@ -30,6 +30,9 @@ CouchDB-Python to use custom decoding and encoding functions::
     json.use(decode=my_decode, encode=my_encode)
 
 """
+from json import JSONEncoder
+
+from couchdb.mapping import Document
 
 __all__ = ['decode', 'encode', 'use']
 
@@ -64,9 +67,17 @@ def encode(obj):
     :return: the corresponding JSON string
     :rtype: basestring
     """
-    if not _initialized:
-        _initialize()
-    return _encode(obj)
+    import json
+    return json.dumps(obj, cls=DocumentJSONEncoder)
+
+
+class DocumentJSONEncoder(JSONEncoder):
+
+    def default(self, o):
+        if isinstance(o, Document):
+            return o.unwrap()
+
+        return super().default(o)
 
 
 def use(module=None, decode=None, encode=None):
